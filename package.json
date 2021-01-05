@@ -1,0 +1,24 @@
+{
+  "name": "server-text-width",
+  "version": "1.0.0",
+  "description": "Calculates width of text in pixels at server side",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Eugene Chernyshov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Evgenus/js-server-text-width.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Evgenus/js-server-text-width/issues"
+  },
+  "homepage": "https://github.com/Evgenus/js-server-text-width",
+  "devDependencies": {
+    "typescript": "^4.1.3"
+  }
+}

@@ -1,0 +1,459 @@
+<style>
+    #groups {
+        border: 1px solid black;
+        max-height: 300px;
+        overflow: scroll;
+    }
+    #form {
+        display: flex;
+        flex-direction: row;
+    }
+    .form-part {
+        margin-right: 20px;
+    }
+    #example span{
+        border-radius: 20px;
+        cursor: default;
+    }
+    #example-input {
+        width: 500px;
+        margin-bottom: 20px;
+    }
+    #result {
+        width: 100%;
+        height: 300px;
+    }
+</style>
+
+<script>
+var base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+var base64codes = {}
+for(var index = 0; index < base64chars.length; index++) {
+    base64codes[base64chars[index]] = index;
+}
+
+function floatToBase64(number) {
+    if (number >= 64) {
+        console.log('width is greater than 64 pixels, this is limitation');
+    }
+    var integer = Math.floor(number)
+    var fractional = number - integer
+    var fract64 = Math.floor(64 * fractional)
+    return base64chars[integer] + base64chars[fract64];
+}
+
+function base64ToFloat(str) {
+    var integer = base64codes[str[0]];
+    var fract64 = base64codes[str[1]];
+    var fractional = fract64 / 64;
+    return integer + fractional;
+}
+
+var unicodeGroups = [
+    {"id": "basic-latin", "label": "Basic Latin", "start": 0x0, "end": 0x7F},
+    {"id": "latin-1-supplement", "label": "Latin-1 Supplement", "start": 0x80, "end": 0xFF},
+    {"id": "latin-extended-a", "label": "Latin Extended-A", "start": 0x100, "end": 0x17F},
+    {"id": "latin-extended-b", "label": "Latin Extended-B", "start": 0x180, "end": 0x24F},
+    {"id": "ipa-extensions", "label": "IPA Extensions", "start": 0x250, "end": 0x2AF},
+    {"id": "spacing-modifier-letters", "label": "Spacing Modifier Letters", "start": 0x2B0, "end": 0x2FF},
+    {"id": "combining-diacritical-marks", "label": "Combining Diacritical Marks", "start": 0x300, "end": 0x36F},
+    {"id": "greek-and-coptic", "label": "Greek and Coptic", "start": 0x370, "end": 0x3FF},
+    {"id": "cyrillic", "label": "Cyrillic", "start": 0x400, "end": 0x4FF},
+    {"id": "cyrillic-supplement", "label": "Cyrillic Supplement", "start": 0x500, "end": 0x527},
+    {"id": "armenian", "label": "Armenian", "start": 0x531, "end": 0x58A},
+    {"id": "hebrew", "label": "Hebrew", "start": 0x591, "end": 0x5F4},
+    {"id": "arabic", "label": "Arabic", "start": 0x600, "end": 0x6FF},
+    {"id": "syriac", "label": "Syriac", "start": 0x700, "end": 0x74F},
+    {"id": "arabic-supplement", "label": "Arabic Supplement", "start": 0x750, "end": 0x77F},
+    {"id": "thaana", "label": "Thaana", "start": 0x780, "end": 0x7B1},
+    {"id": "nko", "label": "NKo", "start": 0x7C0, "end": 0x7FA},
+    {"id": "samaritan", "label": "Samaritan", "start": 0x800, "end": 0x83E},
+    {"id": "mandaic", "label": "Mandaic", "start": 0x840, "end": 0x85E},
+    {"id": "devanagari", "label": "Devanagari", "start": 0x900, "end": 0x97F},
+    {"id": "bengali", "label": "Bengali", "start": 0x981, "end": 0x9FB},
+    {"id": "gurmukhi", "label": "Gurmukhi", "start": 0xA01, "end": 0xA75},
+    {"id": "gujarati", "label": "Gujarati", "start": 0xA81, "end": 0xAF1},
+    {"id": "oriya", "label": "Oriya", "start": 0xB01, "end": 0xB77},
+    {"id": "tamil", "label": "Tamil", "start": 0xB82, "end": 0xBFA},
+    {"id": "telugu", "label": "Telugu", "start": 0xC01, "end": 0xC7F},
+    {"id": "kannada", "label": "Kannada", "start": 0xC82, "end": 0xCF2},
+    {"id": "malayalam", "label": "Malayalam", "start": 0xD02, "end": 0xD7F},
+    {"id": "sinhala", "label": "Sinhala", "start": 0xD82, "end": 0xDF4},
+    {"id": "thai", "label": "Thai", "start": 0xE01, "end": 0xE5B},
+    {"id": "lao", "label": "Lao", "start": 0xE81, "end": 0xEDD},
+    {"id": "tibetan", "label": "Tibetan", "start": 0xF00, "end": 0xFDA},
+    {"id": "myanmar", "label": "Myanmar", "start": 0x1000, "end": 0x109F},
+    {"id": "georgian", "label": "Georgian", "start": 0x10A0, "end": 0x10FC},
+    {"id": "hangul-jamo", "label": "Hangul Jamo", "start": 0x1100, "end": 0x11FF},
+    {"id": "ethiopic", "label": "Ethiopic", "start": 0x1200, "end": 0x137C},
+    {"id": "ethiopic-supplement", "label": "Ethiopic Supplement", "start": 0x1380, "end": 0x1399},
+    {"id": "cherokee", "label": "Cherokee", "start": 0x13A0, "end": 0x13F4},
+    {"id": "unified-canadian-aboriginal-syllabics", "label": "Unified Canadian Aboriginal Syllabics", "start": 0x1400, "end": 0x167F},
+    {"id": "ogham", "label": "Ogham", "start": 0x1680, "end": 0x169C},
+    {"id": "runic", "label": "Runic", "start": 0x16A0, "end": 0x16F0},
+    {"id": "tagalog", "label": "Tagalog", "start": 0x1700, "end": 0x1714},
+    {"id": "hanunoo", "label": "Hanunoo", "start": 0x1720, "end": 0x1736},
+    {"id": "buhid", "label": "Buhid", "start": 0x1740, "end": 0x1753},
+    {"id": "tagbanwa", "label": "Tagbanwa", "start": 0x1760, "end": 0x1773},
+    {"id": "khmer", "label": "Khmer", "start": 0x1780, "end": 0x17F9},
+    {"id": "mongolian", "label": "Mongolian", "start": 0x1800, "end": 0x18AA},
+    {"id": "unified-canadian-aboriginal-syllabics-extended", "label": "Unified Canadian Aboriginal Syllabics Extended", "start": 0x18B0, "end": 0x18F5},
+    {"id": "limbu", "label": "Limbu", "start": 0x1900, "end": 0x194F},
+    {"id": "tai-le", "label": "Tai Le", "start": 0x1950, "end": 0x1974},
+    {"id": "new-tai-lue", "label": "New Tai Lue", "start": 0x1980, "end": 0x19DF},
+    {"id": "khmer-symbols", "label": "Khmer Symbols", "start": 0x19E0, "end": 0x19FF},
+    {"id": "buginese", "label": "Buginese", "start": 0x1A00, "end": 0x1A1F},
+    {"id": "tai-tham", "label": "Tai Tham", "start": 0x1A20, "end": 0x1AAD},
+    {"id": "balinese", "label": "Balinese", "start": 0x1B00, "end": 0x1B7C},
+    {"id": "sundanese", "label": "Sundanese", "start": 0x1B80, "end": 0x1BB9},
+    {"id": "batak", "label": "Batak", "start": 0x1BC0, "end": 0x1BFF},
+    {"id": "lepcha", "label": "Lepcha", "start": 0x1C00, "end": 0x1C4F},
+    {"id": "ol-chiki", "label": "Ol Chiki", "start": 0x1C50, "end": 0x1C7F},
+    {"id": "vedic-extensions", "label": "Vedic Extensions", "start": 0x1CD0, "end": 0x1CF2},
+    {"id": "phonetic-extensions", "label": "Phonetic Extensions", "start": 0x1D00, "end": 0x1D7F},
+    {"id": "phonetic-extensions-supplement", "label": "Phonetic Extensions Supplement", "start": 0x1D80, "end": 0x1DBF},
+    {"id": "combining-diacritical-marks-supplement", "label": "Combining Diacritical Marks Supplement", "start": 0x1DC0, "end": 0x1DFF},
+    {"id": "latin-extended-additional", "label": "Latin Extended Additional", "start": 0x1E00, "end": 0x1EFF},
+    {"id": "greek-extended", "label": "Greek Extended", "start": 0x1F00, "end": 0x1FFE},
+    {"id": "general-punctuation", "label": "General Punctuation", "start": 0x2000, "end": 0x206F},
+    {"id": "superscripts-and-subscripts", "label": "Superscripts and Subscripts", "start": 0x2070, "end": 0x209C},
+    {"id": "currency-symbols", "label": "Currency Symbols", "start": 0x20A0, "end": 0x20B9},
+    {"id": "combining-diacritical-marks-for-symbols", "label": "Combining Diacritical Marks for Symbols", "start": 0x20D0, "end": 0x20F0},
+    {"id": "letterlike-symbols", "label": "Letterlike Symbols", "start": 0x2100, "end": 0x214F},
+    {"id": "number-forms", "label": "Number Forms", "start": 0x2150, "end": 0x2189},
+    {"id": "arrows", "label": "Arrows", "start": 0x2190, "end": 0x21FF},
+    {"id": "mathematical-operators", "label": "Mathematical Operators", "start": 0x2200, "end": 0x22FF},
+    {"id": "miscellaneous-technical", "label": "Miscellaneous Technical", "start": 0x2300, "end": 0x23F3},
+    {"id": "control-pictures", "label": "Control Pictures", "start": 0x2400, "end": 0x2426},
+    {"id": "optical-character-recognition", "label": "Optical Character Recognition", "start": 0x2440, "end": 0x244A},
+    {"id": "enclosed-alphanumerics", "label": "Enclosed Alphanumerics", "start": 0x2460, "end": 0x24FF},
+    {"id": "box-drawing", "label": "Box Drawing", "start": 0x2500, "end": 0x257F},
+    {"id": "block-elements", "label": "Block Elements", "start": 0x2580, "end": 0x259F},
+    {"id": "geometric-shapes", "label": "Geometric Shapes", "start": 0x25A0, "end": 0x25FF},
+    {"id": "miscellaneous-symbols", "label": "Miscellaneous Symbols", "start": 0x2600, "end": 0x26FF},
+    {"id": "dingbats", "label": "Dingbats", "start": 0x2701, "end": 0x27BF},
+    {"id": "miscellaneous-mathematical-symbols-a", "label": "Miscellaneous Mathematical Symbols-A", "start": 0x27C0, "end": 0x27EF},
+    {"id": "supplemental-arrows-a", "label": "Supplemental Arrows-A", "start": 0x27F0, "end": 0x27FF},
+    {"id": "braille-patterns", "label": "Braille Patterns", "start": 0x2800, "end": 0x28FF},
+    {"id": "supplemental-arrows-b", "label": "Supplemental Arrows-B", "start": 0x2900, "end": 0x297F},
+    {"id": "miscellaneous-mathematical-symbols-b", "label": "Miscellaneous Mathematical Symbols-B", "start": 0x2980, "end": 0x29FF},
+    {"id": "supplemental-mathematical-operators", "label": "Supplemental Mathematical Operators", "start": 0x2A00, "end": 0x2AFF},
+    {"id": "miscellaneous-symbols-and-arrows", "label": "Miscellaneous Symbols and Arrows", "start": 0x2B00, "end": 0x2B59},
+    {"id": "glagolitic", "label": "Glagolitic", "start": 0x2C00, "end": 0x2C5E},
+    {"id": "latin-extended-c", "label": "Latin Extended-C", "start": 0x2C60, "end": 0x2C7F},
+    {"id": "coptic", "label": "Coptic", "start": 0x2C80, "end": 0x2CFF},
+    {"id": "georgian-supplement", "label": "Georgian Supplement", "start": 0x2D00, "end": 0x2D25},
+    {"id": "tifinagh", "label": "Tifinagh", "start": 0x2D30, "end": 0x2D7F},
+    {"id": "ethiopic-extended", "label": "Ethiopic Extended", "start": 0x2D80, "end": 0x2DDE},
+    {"id": "cyrillic-extended-a", "label": "Cyrillic Extended-A", "start": 0x2DE0, "end": 0x2DFF},
+    {"id": "supplemental-punctuation", "label": "Supplemental Punctuation", "start": 0x2E00, "end": 0x2E31},
+    {"id": "cjk-radicals-supplement", "label": "CJK Radicals Supplement", "start": 0x2E80, "end": 0x2EF3},
+    {"id": "kangxi-radicals", "label": "Kangxi Radicals", "start": 0x2F00, "end": 0x2FD5},
+    {"id": "ideographic-description-characters", "label": "Ideographic Description Characters", "start": 0x2FF0, "end": 0x2FFB},
+    {"id": "cjk-symbols-and-punctuation", "label": "CJK Symbols and Punctuation", "start": 0x3000, "end": 0x303F},
+    {"id": "hiragana", "label": "Hiragana", "start": 0x3041, "end": 0x309F},
+    {"id": "katakana", "label": "Katakana", "start": 0x30A0, "end": 0x30FF},
+    {"id": "bopomofo", "label": "Bopomofo", "start": 0x3105, "end": 0x312D},
+    {"id": "hangul-compatibility-jamo", "label": "Hangul Compatibility Jamo", "start": 0x3131, "end": 0x318E},
+    {"id": "kanbun", "label": "Kanbun", "start": 0x3190, "end": 0x319F},
+    {"id": "bopomofo-extended", "label": "Bopomofo Extended", "start": 0x31A0, "end": 0x31BA},
+    {"id": "cjk-strokes", "label": "CJK Strokes", "start": 0x31C0, "end": 0x31E3},
+    {"id": "katakana-phonetic-extensions", "label": "Katakana Phonetic Extensions", "start": 0x31F0, "end": 0x31FF},
+    {"id": "enclosed-cjk-letters-and-months", "label": "Enclosed CJK Letters and Months", "start": 0x3200, "end": 0x32FE},
+    {"id": "cjk-compatibility", "label": "CJK Compatibility", "start": 0x3300, "end": 0x33FF},
+    {"id": "cjk-unified-ideographs-extension-a", "label": "CJK Unified Ideographs Extension A", "start": 0x3400, "end": 0x4DB5},
+    {"id": "yijing-hexagram-symbols", "label": "Yijing Hexagram Symbols", "start": 0x4DC0, "end": 0x4DFF},
+    {"id": "cjk-unified-ideographs", "label": "CJK Unified Ideographs", "start": 0x4E00, "end": 0x9FCB},
+    {"id": "yi-syllables", "label": "Yi Syllables", "start": 0xA000, "end": 0xA48C},
+    {"id": "yi-radicals", "label": "Yi Radicals", "start": 0xA490, "end": 0xA4C6},
+    {"id": "lisu", "label": "Lisu", "start": 0xA4D0, "end": 0xA4FF},
+    {"id": "vai", "label": "Vai", "start": 0xA500, "end": 0xA62B},
+    {"id": "cyrillic-extended-b", "label": "Cyrillic Extended-B", "start": 0xA640, "end": 0xA697},
+    {"id": "bamum", "label": "Bamum", "start": 0xA6A0, "end": 0xA6F7},
+    {"id": "modifier-tone-letters", "label": "Modifier Tone Letters", "start": 0xA700, "end": 0xA71F},
+    {"id": "latin-extended-d", "label": "Latin Extended-D", "start": 0xA720, "end": 0xA7FF},
+    {"id": "syloti-nagri", "label": "Syloti Nagri", "start": 0xA800, "end": 0xA82B},
+    {"id": "common-indic-number-forms", "label": "Common Indic Number Forms", "start": 0xA830, "end": 0xA839},
+    {"id": "phags-pa", "label": "Phags-pa", "start": 0xA840, "end": 0xA877},
+    {"id": "saurashtra", "label": "Saurashtra", "start": 0xA880, "end": 0xA8D9},
+    {"id": "devanagari-extended", "label": "Devanagari Extended", "start": 0xA8E0, "end": 0xA8FB},
+    {"id": "kayah-li", "label": "Kayah Li", "start": 0xA900, "end": 0xA92F},
+    {"id": "rejang", "label": "Rejang", "start": 0xA930, "end": 0xA95F},
+    {"id": "hangul-jamo-extended-a", "label": "Hangul Jamo Extended-A", "start": 0xA960, "end": 0xA97C},
+    {"id": "javanese", "label": "Javanese", "start": 0xA980, "end": 0xA9DF},
+    {"id": "cham", "label": "Cham", "start": 0xAA00, "end": 0xAA5F},
+    {"id": "myanmar-extended-a", "label": "Myanmar Extended-A", "start": 0xAA60, "end": 0xAA7B},
+    {"id": "tai-viet", "label": "Tai Viet", "start": 0xAA80, "end": 0xAADF},
+    {"id": "ethiopic-extended-a", "label": "Ethiopic Extended-A", "start": 0xAB01, "end": 0xAB2E},
+    {"id": "meetei-mayek", "label": "Meetei Mayek", "start": 0xABC0, "end": 0xABF9},
+    {"id": "hangul-syllables", "label": "Hangul Syllables", "start": 0xAC00, "end": 0xD7A3},
+    {"id": "hangul-jamo-extended-b", "label": "Hangul Jamo Extended-B", "start": 0xD7B0, "end": 0xD7FB},
+    {"id": "high-surrogates", "label": "High Surrogates", "start": 0xD800, "end": 0xDB7F},
+    {"id": "high-private-use-surrogates", "label": "High Private Use Surrogates", "start": 0xDB80, "end": 0xDBFF},
+    {"id": "low-surrogates", "label": "Low Surrogates", "start": 0xDC00, "end": 0xDFFF},
+    {"id": "private-use-area", "label": "Private Use Area", "start": 0xE000, "end": 0xF8FF},
+    {"id": "cjk-compatibility-ideographs", "label": "CJK Compatibility Ideographs", "start": 0xF900, "end": 0xFAD9},
+    {"id": "alphabetic-presentation-forms", "label": "Alphabetic Presentation Forms", "start": 0xFB00, "end": 0xFB4F},
+    {"id": "arabic-presentation-forms-a", "label": "Arabic Presentation Forms-A", "start": 0xFB50, "end": 0xFDFD},
+    {"id": "variation-selectors", "label": "Variation Selectors", "start": 0xFE00, "end": 0xFE0F},
+    {"id": "vertical-forms", "label": "Vertical Forms", "start": 0xFE10, "end": 0xFE19},
+    {"id": "combining-half-marks", "label": "Combining Half Marks", "start": 0xFE20, "end": 0xFE26},
+    {"id": "cjk-compatibility-forms", "label": "CJK Compatibility Forms", "start": 0xFE30, "end": 0xFE4F},
+    {"id": "small-form-variants", "label": "Small Form Variants", "start": 0xFE50, "end": 0xFE6B},
+    {"id": "arabic-presentation-forms-b", "label": "Arabic Presentation Forms-B", "start": 0xFE70, "end": 0xFEFF},
+    {"id": "halfwidth-and-fullwidth-forms", "label": "Halfwidth and Fullwidth Forms", "start": 0xFF01, "end": 0xFFEE},
+    {"id": "specials", "label": "Specials", "start": 0xFFF9, "end": 0xFFFD},
+    {"id": "linear-b-syllabary", "label": "Linear B Syllabary", "start": 0x10000, "end": 0x1005D},
+    {"id": "linear-b-ideograms", "label": "Linear B Ideograms", "start": 0x10080, "end": 0x100FA},
+    {"id": "aegean-numbers", "label": "Aegean Numbers", "start": 0x10100, "end": 0x1013F},
+    {"id": "ancient-greek-numbers", "label": "Ancient Greek Numbers", "start": 0x10140, "end": 0x1018A},
+    {"id": "ancient-symbols", "label": "Ancient Symbols", "start": 0x10190, "end": 0x1019B},
+    {"id": "phaistos-disc", "label": "Phaistos Disc", "start": 0x101D0, "end": 0x101FD},
+    {"id": "lycian", "label": "Lycian", "start": 0x10280, "end": 0x1029C},
+    {"id": "carian", "label": "Carian", "start": 0x102A0, "end": 0x102D0},
+    {"id": "old-italic", "label": "Old Italic", "start": 0x10300, "end": 0x10323},
+    {"id": "gothic", "label": "Gothic", "start": 0x10330, "end": 0x1034A},
+    {"id": "ugaritic", "label": "Ugaritic", "start": 0x10380, "end": 0x1039F},
+    {"id": "old-persian", "label": "Old Persian", "start": 0x103A0, "end": 0x103D5},
+    {"id": "deseret", "label": "Deseret", "start": 0x10400, "end": 0x1044F},
+    {"id": "shavian", "label": "Shavian", "start": 0x10450, "end": 0x1047F},
+    {"id": "osmanya", "label": "Osmanya", "start": 0x10480, "end": 0x104A9},
+    {"id": "cypriot-syllabary", "label": "Cypriot Syllabary", "start": 0x10800, "end": 0x1083F},
+    {"id": "imperial-aramaic", "label": "Imperial Aramaic", "start": 0x10840, "end": 0x1085F},
+    {"id": "phoenician", "label": "Phoenician", "start": 0x10900, "end": 0x1091F},
+    {"id": "lydian", "label": "Lydian", "start": 0x10920, "end": 0x1093F},
+    {"id": "kharoshthi", "label": "Kharoshthi", "start": 0x10A00, "end": 0x10A58},
+    {"id": "old-south-arabian", "label": "Old South Arabian", "start": 0x10A60, "end": 0x10A7F},
+    {"id": "avestan", "label": "Avestan", "start": 0x10B00, "end": 0x10B3F},
+    {"id": "inscriptional-parthian", "label": "Inscriptional Parthian", "start": 0x10B40, "end": 0x10B5F},
+    {"id": "inscriptional-pahlavi", "label": "Inscriptional Pahlavi", "start": 0x10B60, "end": 0x10B7F},
+    {"id": "old-turkic", "label": "Old Turkic", "start": 0x10C00, "end": 0x10C48},
+    {"id": "rumi-numeral-symbols", "label": "Rumi Numeral Symbols", "start": 0x10E60, "end": 0x10E7E},
+    {"id": "brahmi", "label": "Brahmi", "start": 0x11000, "end": 0x1106F},
+    {"id": "kaithi", "label": "Kaithi", "start": 0x11080, "end": 0x110C1},
+    {"id": "cuneiform", "label": "Cuneiform", "start": 0x12000, "end": 0x1236E},
+    {"id": "cuneiform-numbers-and-punctuation", "label": "Cuneiform Numbers and Punctuation", "start": 0x12400, "end": 0x12473},
+    {"id": "egyptian-hieroglyphs", "label": "Egyptian Hieroglyphs", "start": 0x13000, "end": 0x1342E},
+    {"id": "bamum-supplement", "label": "Bamum Supplement", "start": 0x16800, "end": 0x16A38},
+    {"id": "kana-supplement", "label": "Kana Supplement", "start": 0x1B000, "end": 0x1B001},
+    {"id": "byzantine-musical-symbols", "label": "Byzantine Musical Symbols", "start": 0x1D000, "end": 0x1D0F5},
+    {"id": "musical-symbols", "label": "Musical Symbols", "start": 0x1D100, "end": 0x1D1DD},
+    {"id": "ancient-greek-musical-notation", "label": "Ancient Greek Musical Notation", "start": 0x1D200, "end": 0x1D245},
+    {"id": "tai-xuan-jing-symbols", "label": "Tai Xuan Jing Symbols", "start": 0x1D300, "end": 0x1D356},
+    {"id": "counting-rod-numerals", "label": "Counting Rod Numerals", "start": 0x1D360, "end": 0x1D371},
+    {"id": "mathematical-alphanumeric-symbols", "label": "Mathematical Alphanumeric Symbols", "start": 0x1D400, "end": 0x1D7FF},
+    {"id": "mahjong-tiles", "label": "Mahjong Tiles", "start": 0x1F000, "end": 0x1F02B},
+    {"id": "domino-tiles", "label": "Domino Tiles", "start": 0x1F030, "end": 0x1F093},
+    {"id": "playing-cards", "label": "Playing Cards", "start": 0x1F0A0, "end": 0x1F0DF},
+    {"id": "enclosed-alphanumeric-supplement", "label": "Enclosed Alphanumeric Supplement", "start": 0x1F100, "end": 0x1F1FF},
+    {"id": "enclosed-ideographic-supplement", "label": "Enclosed Ideographic Supplement", "start": 0x1F200, "end": 0x1F251},
+    {"id": "miscellaneous-symbols-and-pictographs", "label": "Miscellaneous Symbols And Pictographs", "start": 0x1F300, "end": 0x1F5FF},
+    {"id": "emoticons", "label": "Emoticons", "start": 0x1F601, "end": 0x1F64F},
+    {"id": "transport-and-map-symbols", "label": "Transport And Map Symbols", "start": 0x1F680, "end": 0x1F6C5},
+    {"id": "alchemical-symbols", "label": "Alchemical Symbols", "start": 0x1F700, "end": 0x1F773},
+    {"id": "cjk-unified-ideographs-extension-b", "label": "CJK Unified Ideographs Extension B", "start": 0x20000, "end": 0x2A6D6},
+    {"id": "cjk-unified-ideographs-extension-c", "label": "CJK Unified Ideographs Extension C", "start": 0x2A700, "end": 0x2B734},
+    {"id": "cjk-unified-ideographs-extension-d", "label": "CJK Unified Ideographs Extension D", "start": 0x2B740, "end": 0x2B81D},
+    {"id": "cjk-compatibility-ideographs-supplement", "label": "CJK Compatibility Ideographs Supplement", "start": 0x2F800, "end": 0x2FA1D},
+    {"id": "tags", "label": "Tags", "start": 0xE0001, "end": 0xE007F},
+    {"id": "variation-selectors-supplement", "label": "Variation Selectors Supplement", "start": 0xE0100, "end": 0xE01EF},
+    {"id": "supplementary-private-use-area-a", "label": "Supplementary Private Use Area-A", "start": 0xF0000, "end": 0xFFFFD},
+    {"id": "supplementary-private-use-area-b", "label": "Supplementary Private Use Area-B", "start": 0x100000, "end": 0x10FFFD},
+];
+
+function findGroupById(id) {
+    for(var group of unicodeGroups) {
+        if(group.id == id) {
+            return group;
+        }
+    }
+}
+
+window.onload = function() {
+    var fontFamily = "Arial";
+    var fontSize = "14px";
+    var fontWeight = "600";
+    var exampleText = "Font Appearance Example 1234567890 +-*/!@#$%^&()";
+    var selectedGroups = new Set();
+    var charactersTable = {};
+
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    function getTextWidth(text) {
+        context.font = [fontWeight, fontSize, fontFamily].join(' ');
+        return context.measureText(text).width;
+    };
+
+    function lookupTable(char, fontName, fontSize, fontWeight) {
+        var code = char.charCodeAt(0);
+        for(var row in charactersTable) {
+            var [font, size, weight, start16] = row.split('|')
+            if(fontName && fontName != font) {
+                continue;
+            }
+            if(fontSize && fontSize != size) {
+                continue;
+            }
+            if(fontWeight && fontWeight != weight) {
+                continue;
+            }
+            var data = charactersTable[row];
+            var start = parseInt(start16, 16);
+            var end = start + data.length / 2;
+            if(start <= code && code <= end) {
+                var pos = (code - start) * 2;
+                return base64ToFloat(data.slice(pos, pos + 2));
+            }
+        }
+    }
+
+    function gettextWidthWithLookup(text, fontName, fontSize, fontWeight) {
+        return Array.from(text).reduce(function(sum, item) {
+            return sum + lookupTable(item, fontName, fontSize, fontWeight);
+        }, 0);
+    }
+
+    var example = document.getElementById("example");
+    var result = document.getElementById("result");
+    function update() {
+        var totalCharacters = 0;
+        charactersTable = {};
+        var groups = Array
+            .from(selectedGroups, findGroupById)
+            .sort(function(a, b) {
+                return a.start - b.start;
+            })
+        var prevGroup = null;
+        var charactersRow = [];
+        var startPosition = 0;
+        function addRow() {
+            if(charactersRow.length == 0) {
+                return;
+            }
+            var key = [
+                fontFamily,
+                fontSize,
+                fontWeight,
+                startPosition.toString(16),
+            ].join('|');
+            charactersTable[key] = charactersRow.join('');
+            charactersRow = [];
+        }
+        for(var group of groups) {
+            var mergeGroups = (prevGroup != null && prevGroup.end + 1 == group.start)
+            if(!mergeGroups) {
+                addRow();
+                startPosition = group.start;
+            }
+            for(var code = group.start; code <= group.end; code++) {
+                var char = String.fromCharCode(code);
+                var b64str = floatToBase64(getTextWidth(char));
+                charactersRow.push(b64str)
+                totalCharacters++;
+            }
+            prevGroup = group;
+        }
+        addRow();
+
+        example.style.fontFamily = fontFamily + ", monospace";
+        example.style.fontSize = fontSize;
+        example.style.fontWeight = fontWeight;
+        example.innerHTML = '';
+        for(var char of exampleText) {
+            var charElement = document.createElement("span");
+            charElement.innerText = char;
+            var width = lookupTable(char);
+            charElement.title = width + ' : ' + getTextWidth(char);
+            if(width !== undefined) {
+                charElement.style.borderBottom = "1px solid green";
+            } else {
+                charElement.style.borderBottom = "1px solid red";
+            }
+            example.append(charElement);
+        }
+        result.value = JSON.stringify(charactersTable, null, 4);
+        console.log(
+            "computed", getTextWidth(exampleText),
+            "looked up", gettextWidthWithLookup(exampleText, fontFamily, fontSize, fontWeight),
+        )
+    }
+
+    var groupsContainer = document.getElementById("groups");
+    for(var group of unicodeGroups) {
+        var groupWrapper = document.createElement("div");
+        var checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = group.id;
+        checkbox.name = "groups";
+        checkbox.value = group.id;
+        var label =  document.createElement("label");
+        label.for = group.id;
+        label.innerText = group.label;
+        groupWrapper.append(checkbox);
+        groupWrapper.append(label);
+        groupsContainer.append(groupWrapper);
+        checkbox.addEventListener("input", function(e) {
+            if(e.target.checked) {
+                selectedGroups.add(e.target.value);
+            } else {
+                selectedGroups.delete(e.target.value);
+            }
+            update();
+        });
+    }
+
+    var fontSelector = document.getElementById("example-input");
+    fontSelector.value = exampleText;
+    fontSelector.addEventListener("input", function(e) {
+        exampleText = e.target.value;
+        update();
+    });
+
+    var fontSelector = document.getElementById("font-selector");
+    fontSelector.value = fontFamily;
+    fontSelector.addEventListener("input", function(e) {
+        fontFamily = e.target.value;
+        update();
+    });
+
+    var sizeSelector = document.getElementById("size-selector");
+    sizeSelector.value = fontSize;
+    sizeSelector.addEventListener("input", function(e) {
+        fontSize = e.target.value;
+        update();
+    });
+
+    var weightSelector = document.getElementById("weight-selector");
+    weightSelector.value = fontWeight;
+    weightSelector.addEventListener("input", function(e) {
+        fontWeight = e.target.value;
+        update();
+    });
+
+    update();
+};
+
+</script>
+<body>
+<input id="example-input"/>
+<div id="example"></div>
+
+<form id="form">
+    <div class="form-part">
+        <h3>Select font</h3>
+        <input id="font-selector"/>
+        <h3>Select size</h3>
+        <input id="size-selector"/>
+        <h3>Select weight</h3>
+        <input id="weight-selector"/>
+    </div>
+    <div class="form-part">
+        <h3>Select unicode pages</h3>
+        <div id="groups">
+        </div>
+    </div>
+</form>
+<textarea id="result"></textarea>
+</body>
