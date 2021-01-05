@@ -15,8 +15,8 @@ or
 - no dependencies
 - works in node and in browser same way
 - supports unicode characters (not only latin or ASCII)
-- supports many fonts (your own fonts as well)
-- supports many font sizes
+- supports multiple fonts (your own fonts as well)
+- supports multiple font sizes
 - supports font weight
 - typescript definitions included
 - minimizes size of table data
@@ -70,4 +70,4 @@ That is it. Enjoy your server side text rendering. Star my repo if you like it :
 PRs are very welcome
 
 - add text variants (italic)
-- add web fonts to the tool
+- add web fonts support to the tool
