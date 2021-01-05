@@ -1,10 +1,14 @@
 # js-server-text-width
 
-This module provides function for calculating text width in pixels. In the browser you have that capability out of the box (with canvas or with hidden element) but not in node. It is useful for server side rendering when you need to trim text to some placeholder or to draw something around the text.
+This module provides a function for calculating text width in pixels. In the browser you have that capability out of the box (with canvas or with hidden element) but not in nodejs. It is useful for server side rendering when you need to trim text to some fixed size or to draw something around the text.
 
 ## Instalation
 
     npm install server-text-width
+
+or
+
+    yarn add server-text-width
 
 ## Features
 
@@ -49,11 +53,21 @@ const TEXT_WIDTH_LOOKUP_TABLE = {
 
 NOTE: If you need multiple fonts, sizes, weight or ranges just merge that dictionary manually. The tool is limited to produce only one set at the time for simplicity.
 
-Then in code
+Then just import and initialize the module
 
-```
+```typescript
 import { init } from 'server-text-width';
 
 const { getTextWidth } = init(TEXT_WIDTH_LOOKUP_TABLE);
-export { getTextWidth };
+
+const width = getTextWidth('Measure my text');
 ```
+
+That is it. Enjoy your server side text rendering. Star my repo if you like it :)
+
+## Future work
+
+PRs are very welcome
+
+- add text variants (italic)
+- add web fonts to the tool
