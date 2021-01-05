@@ -1,6 +1,6 @@
 {
   "name": "server-text-width",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Calculates width of text in pixels at server side",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
